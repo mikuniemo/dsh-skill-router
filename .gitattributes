@@ -1,0 +1,13 @@
+# Normalize all line endings to LF in the repository.
+# This repo's own methodology (docs/METHODOLOGY.md) establishes that hashing and
+# diffing must be line-ending independent; enforce that here so contributors on
+# Windows don't introduce CRLF churn (git warned about exactly this on push).
+* text=auto eol=lf
+
+# Windows scripts keep CRLF where consumers expect it
+*.ps1 text eol=crlf
+
+# Binary guards
+*.png binary
+*.jpg binary
+*.ico binary
