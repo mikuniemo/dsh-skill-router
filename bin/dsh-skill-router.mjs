@@ -274,7 +274,7 @@ function buildPlan(o) {
     { path: path.join(dirs.skillsRoot, ROUTER_NAME, 'SKILL.md'), what: 'router' },
     ...buckets.map((b) => ({ path: path.join(dirs.indexDir, `${b.category}.md`), what: 'index' })),
     { path: path.join(dirs.indexDir, `${MANAGER_NAME}.md`), what: 'manager' },
-    { path: path.join(dirs.indexDir, '.dsh-skill-luyou.manifest.json'), what: 'manifest' },
+    { path: path.join(dirs.indexDir, '.dsh-skill-router.manifest.json'), what: 'manifest' },
   ];
   return { dirs, buckets, skills, invalid, linkActions, indexSizes, files, excludes, overrides };
 }
@@ -351,7 +351,7 @@ function cmdApply(o) {
       ],
       linked: p.linkActions.length,
     };
-    fs.writeFileSync(path.join(d.indexDir, '.dsh-skill-luyou.manifest.json'),
+    fs.writeFileSync(path.join(d.indexDir, '.dsh-skill-router.manifest.json'),
       JSON.stringify(manifest, null, 2), 'utf8');
   }
 
@@ -384,7 +384,7 @@ function cmdVerify(o) {
       for (const x of res.extraneous.slice(0, 10)) process.stdout.write(`  ${x}\n`);
       process.stdout.write(`  these re-inflate the catalog; move them out or re-run apply.\n`);
     }
-    if (!res.manifest) process.stdout.write(`note: no manifest found (${path.join(d.indexDir, '.dsh-skill-luyou.manifest.json')}); restore will be limited.\n`);
+    if (!res.manifest) process.stdout.write(`note: no manifest found (${path.join(d.indexDir, '.dsh-skill-router.manifest.json')}); restore will be limited.\n`);
   }
   process.exitCode = res.dead.length ? 1 : 0;
 }
@@ -392,7 +392,7 @@ function cmdVerify(o) {
 // ────────────────────────────── restore ──────────────────────────────
 function cmdRestore(o) {
   const d = resolveDirs(o);
-  const manifestPath = path.join(d.indexDir, '.dsh-skill-luyou.manifest.json');
+  const manifestPath = path.join(d.indexDir, '.dsh-skill-router.manifest.json');
   let manifest = null;
   try { manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8')); } catch { /* best effort */ }
   const sources = manifest?.sources ?? [];

@@ -1,6 +1,6 @@
 # 方法论：把 Agent 技能目录从 O(n) 常驻降到 O(1) 路由
 
-> 本文是 [dsh-skill-luyou](../README.md) 的设计文档。目标不是解释怎么用——README 负责——
+> 本文是 [dsh-skill-router](../README.md) 的设计文档。目标不是解释怎么用——README 负责——
 > 而是把**每一个设计决策背后的失败模式与测量数据**写清楚，使你可以在另一个 harness
 > （Claude Code、Codex、其他 agent 框架）上从第一性原理重新推导出同一个工具。
 

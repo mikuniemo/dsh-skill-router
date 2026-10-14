@@ -20,23 +20,23 @@ DSH 会把每个技能的 `name` + `description` 塞进**每一次请求**的 `<
 ## 快速开始
 
 ```bash
-git clone https://github.com/mikuniemo/dsh-skill-luyou.git
-cd dsh-skill-luyou
+git clone https://github.com/mikuniemo/dsh-skill-router.git
+cd dsh-skill-router
 
 # 看真相：5 个扫描根、目录开销、被 DSH 静默跳过的技能
-node bin/dsh-skill-luyou.mjs scan
+node bin/dsh-skill-router.mjs scan
 
 # 预览（不写任何文件）
-node bin/dsh-skill-luyou.mjs plan --source "D:\我的技能库" --locale zh
+node bin/dsh-skill-router.mjs plan --source "D:\我的技能库" --locale zh
 
 # 执行：建链接 + 生成路由器与索引
-node bin/dsh-skill-luyou.mjs apply --source "D:\我的技能库" --locale zh
+node bin/dsh-skill-router.mjs apply --source "D:\我的技能库" --locale zh
 
 # 校验每条索引路径有效
-node bin/dsh-skill-luyou.mjs verify
+node bin/dsh-skill-router.mjs verify
 
 # 回滚（源库永不触碰）
-node bin/dsh-skill-luyou.mjs restore
+node bin/dsh-skill-router.mjs restore
 ```
 
 ## 目录布局

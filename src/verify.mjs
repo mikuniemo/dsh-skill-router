@@ -46,6 +46,6 @@ export function verifyIndexes({ indexDir, skillsRoot, offDir }) {
     }
   }
 
-  out.manifest = fs.existsSync(path.join(indexDir, '.dsh-skill-luyou.manifest.json'));
+  out.manifest = fs.existsSync(path.join(indexDir, '.dsh-skill-router.manifest.json'));
   return out;
 }
