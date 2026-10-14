@@ -1,5 +1,10 @@
 # 中文说明
 
+![platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-blue)
+![runtime](https://img.shields.io/badge/node-%E2%89%A520-brightgreen)
+![dependencies](https://img.shields.io/badge/dependencies-0-success)
+![license](https://img.shields.io/github/license/mikuniemo/dsh-skill-router)
+
 **把 DeepSeek Harness 的技能目录从 O(全部技能) 降到 ~600 token 的常驻路由器。**
 
 DSH 会把每个技能的 `name` + `description` 塞进**每一次请求**的 `<available_skills>`。

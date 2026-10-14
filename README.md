@@ -1,5 +1,10 @@
 # dsh-skill-router
 
+![platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-blue)
+![runtime](https://img.shields.io/badge/node-%E2%89%A520-brightgreen)
+![dependencies](https://img.shields.io/badge/dependencies-0-success)
+![license](https://img.shields.io/github/license/mikuniemo/dsh-skill-router)
+
 **Turn the DeepSeek Harness skill catalog from O(all skills) into one ~600-token router.**
 
 DSH publishes every skill's `name` + `description` into `<available_skills>` in **every request**.
