@@ -1,4 +1,4 @@
-# dsh-skill-router
+# dsh-skill-luyou
 
 **Turn the DeepSeek Harness skill catalog from O(all skills) into one ~600-token router.**
 
@@ -36,15 +36,15 @@ it loadable via `read` while removing its catalog cost.
 No install needed — it is a zero-dependency Node script:
 
 ```bash
-git clone https://github.com/OWNER/dsh-skill-router.git
-cd dsh-skill-router
-node bin/dsh-skill-router.mjs --help
+git clone https://github.com/mikuniemo/dsh-skill-luyou.git
+cd dsh-skill-luyou
+node bin/dsh-skill-luyou.mjs --help
 ```
 
 or run straight from anywhere:
 
 ```bash
-npx github:OWNER/dsh-skill-router --help
+npx github:mikuniemo/dsh-skill-luyou --help
 ```
 
 ## Quick start
@@ -52,25 +52,25 @@ npx github:OWNER/dsh-skill-router --help
 ```bash
 # 1. See the truth: every root DSH scans, what the catalog costs,
 #    and the skills DSH silently skips (bad frontmatter).
-dsh-skill-router scan
+dsh-skill-luyou scan
 
 # 2. Preview the plan. Writes nothing.
-dsh-skill-router plan --source "D:\my-skills" --locale zh
+dsh-skill-luyou plan --source "D:\my-skills" --locale zh
 
 # 3. Apply: link skills into the off-root, write router + indexes.
-dsh-skill-router apply --source "D:\my-skills" --locale zh
+dsh-skill-luyou apply --source "D:\my-skills" --locale zh
 
 # 4. Prove every index path resolves.
-dsh-skill-router verify
+dsh-skill-luyou verify
 
 # 5. Undo everything. Source libraries are never touched.
-dsh-skill-router restore
+dsh-skill-luyou restore
 ```
 
 ### Multi-library example (the author's setup)
 
 ```bash
-dsh-skill-router apply \
+dsh-skill-luyou apply \
   --source "D:\daily\skill_merged\skills" \
   --source "D:\resource\Anthropic-Cybersecurity-Skills\skills" \
   --exclude-file excluded.json \
@@ -186,12 +186,12 @@ Useful flags: `--source` (repeatable) · `--exclude <name|prefix*>` · `--exclud
 ## Rolling it out on another machine
 
 ```bash
-git clone https://github.com/OWNER/dsh-skill-router.git
-cd dsh-skill-router
-node bin/dsh-skill-router.mjs scan              # see what you have
-node bin/dsh-skill-router.mjs plan --source <your-skill-library> --locale zh
-node bin/dsh-skill-router.mjs apply --source <your-skill-library> --locale zh
-node bin/dsh-skill-router.mjs verify
+git clone https://github.com/mikuniemo/dsh-skill-luyou.git
+cd dsh-skill-luyou
+node bin/dsh-skill-luyou.mjs scan              # see what you have
+node bin/dsh-skill-luyou.mjs plan --source <your-skill-library> --locale zh
+node bin/dsh-skill-luyou.mjs apply --source <your-skill-library> --locale zh
+node bin/dsh-skill-luyou.mjs verify
 # restart DSH to be safe (the watcher usually picks it up live)
 ```
 

@@ -1,11 +1,11 @@
 {
-  "name": "dsh-skill-router",
+  "name": "dsh-skill-luyou",
   "version": "1.0.0",
   "description": "Shrink the DeepSeek Harness skill catalog from O(all skills) to ~600 tokens by turning it into a router + on-demand category indexes. Cross-platform, zero dependencies.",
   "type": "module",
   "license": "MIT",
   "bin": {
-    "dsh-skill-router": "bin/dsh-skill-router.mjs"
+    "dsh-skill-luyou": "bin/dsh-skill-luyou.mjs"
   },
   "main": "src/index.mjs",
   "exports": {
@@ -24,8 +24,8 @@
   },
   "scripts": {
     "test": "node test/smoke.mjs",
-    "scan": "node bin/dsh-skill-router.mjs scan",
-    "plan": "node bin/dsh-skill-router.mjs plan"
+    "scan": "node bin/dsh-skill-luyou.mjs scan",
+    "plan": "node bin/dsh-skill-luyou.mjs plan"
   },
   "keywords": [
     "deepseek-harness",
@@ -40,10 +40,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/OWNER/dsh-skill-router.git"
+    "url": "git+https://github.com/mikuniemo/dsh-skill-luyou.git"
   },
   "bugs": {
-    "url": "https://github.com/OWNER/dsh-skill-router/issues"
+    "url": "https://github.com/mikuniemo/dsh-skill-luyou/issues"
   },
-  "homepage": "https://github.com/OWNER/dsh-skill-router#readme"
+  "homepage": "https://github.com/mikuniemo/dsh-skill-luyou#readme"
 }

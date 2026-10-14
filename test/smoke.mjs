@@ -10,7 +10,7 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const CLI = path.join(ROOT, 'bin', 'dsh-skill-router.mjs');
+const CLI = path.join(ROOT, 'bin', 'dsh-skill-luyou.mjs');
 
 let pass = 0; let fail = 0;
 function ok(cond, label) {
@@ -99,7 +99,7 @@ ok(/\| `[^`]+` \| \d+ \|/.test(routerBody), 'router has a category table');
 ok(fs.readdirSync(path.join(home, 'skills')).filter((n) => n !== 'skill-router').length === 0,
   'scanned root contains ONLY the router');
 ok(fs.readdirSync(path.join(home, 'skill-index')).some((f) => f.endsWith('.md')), 'category indexes written');
-ok(fs.existsSync(path.join(home, 'skill-index', '.dsh-skill-router.manifest.json')), 'manifest written');
+ok(fs.existsSync(path.join(home, 'skill-index', '.dsh-skill-luyou.manifest.json')), 'manifest written');
 
 // source libraries untouched
 ok(fs.existsSync(path.join(libA, 'ctf-crypto', 'SKILL.md')), 'source library A intact');
