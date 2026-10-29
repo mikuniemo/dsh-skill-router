@@ -1,7 +1,7 @@
 {
   "name": "dsh-skill-router",
   "version": "1.0.0",
-  "description": "Shrink the DeepSeek Harness skill catalog from O(all skills) to ~600 tokens by turning it into a router + on-demand category indexes. Cross-platform, zero dependencies.",
+  "description": "把 DeepSeek Harness 的技能目录从 O(全部技能) 降到 ~600 token：一个常驻路由器 + 按需分类索引。跨平台、零依赖。",
   "type": "module",
   "license": "MIT",
   "bin": {

@@ -5,40 +5,41 @@
 ![dependencies](https://img.shields.io/badge/dependencies-0-success)
 ![license](https://img.shields.io/github/license/mikuniemo/dsh-skill-router)
 
-**Turn the DeepSeek Harness skill catalog from O(all skills) into one ~600-token router.**
+[English](README.en.md)
 
-DSH publishes every skill's `name` + `description` into `<available_skills>` in **every request**.
-That is invisible until you have a real library — then it is fatal:
+**把 DeepSeek Harness 的技能目录从 O(全部技能) 降到一个 ~600 token 的常驻路由器。**
 
-| skills resident | catalog cost / request |
+DSH 会把每个技能的 `name` + `description` 注入**每一次请求**的 `<available_skills>`。
+没有真实技能库时你察觉不到它——一旦有了，就是致命的：
+
+| 常驻技能数 | 每请求的目录开销 |
 |---:|---:|
 | 50 | ~5,000 tok |
-| 1,246 (measured, real library) | **~70,800 tok** |
+| 1,246（实测，真实库） | **~70,800 tok** |
 
-On a 200K context that is **35% gone before your first message**; on 128K you are over budget before
-you start. The catalog is cached, so it is not a *billing* problem — it is a *context* problem.
+在 200K 上下文里，**第一条消息还没发就没了 35%**；128K 则开局即超预算。
+目录是被缓存的，所以这不是*计费*问题——是*上下文*问题。
 
-This tool moves the skills out of the scanned roots, leaves a single `skill-router` skill behind,
-and generates per-category index files the model `read`s on demand:
+本工具把技能移出扫描根，只留一个 `skill-router` 技能，其余按类别生成索引文件，
+模型在需要时用 `read` 按需加载：
 
-| | resident tokens |
+| | 常驻 token |
 |---|---:|
-| before | ~70,800 (measured) |
-| after | **~600** |
+| 改造前 | ~70,800（实测） |
+| 改造后 | **~600** |
 
-On-demand cost: one index file, 1–4K tokens, only when the category is needed.
+按需代价：一个索引文件 1–4K token，只在需要那个类别时才读。
 
-Zero dependencies. Node ≥ 20 (the same floor DSH itself requires). Works on Windows, Linux, macOS.
+零依赖。Node ≥ 20（与 DSH 自身要求相同）。Windows / Linux / macOS 通用。
 
-## Why not just `disable-model-invocation`?
+## 为什么不用 `disable-model-invocation`？
 
-Because it does not do what you want. Per the DSH docs, it removes the skill from model-facing
-catalogs **and loaders** — hidden means unloadable. Moving the skill out of the scanned root keeps
-it loadable via `read` while removing its catalog cost.
+因为它不是你要的东西。按 DSH 文档，它会把技能从模型可见目录**和加载器**里同时移除——
+隐藏即不可加载。而把技能移出扫描根，既保留了 `read` 的可加载性，又消掉了目录开销。
 
-## Install
+## 安装
 
-No install needed — it is a zero-dependency Node script:
+不需要安装——就是一个零依赖的 Node 脚本：
 
 ```bash
 git clone https://github.com/mikuniemo/dsh-skill-router.git
@@ -46,33 +47,33 @@ cd dsh-skill-router
 node bin/dsh-skill-router.mjs --help
 ```
 
-or run straight from anywhere:
+或者直接从任意位置运行：
 
 ```bash
 npx github:mikuniemo/dsh-skill-router --help
 ```
 
-## Quick start
+## 快速开始
 
 ```bash
-# 1. See the truth: every root DSH scans, what the catalog costs,
-#    and the skills DSH silently skips (bad frontmatter).
+# 1. 看真相：DSH 扫描的每个根、目录开销、
+#    以及被 DSH 静默跳过的技能（frontmatter 有问题）。
 dsh-skill-router scan
 
-# 2. Preview the plan. Writes nothing.
+# 2. 预览计划。不写任何文件。
 dsh-skill-router plan --source "D:\my-skills" --locale zh
 
-# 3. Apply: link skills into the off-root, write router + indexes.
+# 3. 执行：把技能链接到扫描根之外，写入路由器 + 索引。
 dsh-skill-router apply --source "D:\my-skills" --locale zh
 
-# 4. Prove every index path resolves.
+# 4. 证明每条索引路径都解析得到。
 dsh-skill-router verify
 
-# 5. Undo everything. Source libraries are never touched.
+# 5. 全部撤销。源库永不触碰。
 dsh-skill-router restore
 ```
 
-### Multi-library example (the author's setup)
+### 多库示例（作者自己的配置）
 
 ```bash
 dsh-skill-router apply \
@@ -83,149 +84,140 @@ dsh-skill-router apply \
   --locale zh
 ```
 
-`--source` is repeatable. Any directory whose immediate children are skill bundles
-(`<name>/SKILL.md` or `<name>.md`) works.
+`--source` 可以重复给。任何"直接子目录是技能包"（`<name>/SKILL.md` 或 `<name>.md`）
+的目录都可以当源库。
 
-## How it works
+## 工作原理
 
 ```
-~/.dsh/skills/            ← scanned root. ONLY skill-router lives here.
-  └── skill-router/SKILL.md     (~600 tokens: the table below)
+~/.dsh/skills/            ← 扫描根。这里只有 skill-router 一个。
+  └── skill-router/SKILL.md     （~600 token：就是下面那张表）
 
-~/.dsh/skill-index/       ← NOT scanned by DSH. Ordinary markdown.
+~/.dsh/skill-index/       ← DSH 不扫描这里。普通 markdown。
   ├── ctf.md                    "- **ctf-crypto** — …\n  `D:\…\ctf-crypto\SKILL.md`"
   ├── malware-analysis.md
-  └── skill-manager.md          (meta-skill: how to add/remove/find skills)
+  └── skill-manager.md          （元技能：怎么加/删/找技能）
 
-~/.dsh/skills-off/        ← the real skills, one junction/symlink per skill,
+~/.dsh/skills-off/        ← 真实技能，每个技能一个 junction/symlink，
   ├── ctf-crypto  ──────────→  D:\daily\skill_merged\skills\ctf-crypto
-  └── …                            (source libraries stay where they are)
+  └── …                            （源库原地不动）
 ```
 
-The model loads a skill in three hops: read router → read one index → read one SKILL.md.
+模型加载技能要走三跳：读路由器 → 读一个索引 → 读一个 SKILL.md。
 
-## The five design decisions (and the evidence behind them)
+## 五个设计决策（以及背后的证据）
 
-These were all learned the hard way against real libraries. They are the reason this
-tool exists rather than a 20-line PowerShell script.
+这些全部是在真实技能库上摔出来的。它们是这个工具存在、而不是一份 20 行 PowerShell
+脚本的理由。
 
-### 1. Links go into the off-root, never the scanned root
+### 1. 链接放进扫描根之外，绝不放进扫描根
 
-The naive flow — "put real directories in `~/.dsh/skills`, then move them out with
-`-DisableSkills`" — **produces dead index paths**. The index records
-`<skillsRoot>/<name>/SKILL.md`; the very next step moves that directory away; the
-router then advertises skills that do not exist. (Reproduced and reported upstream.)
+天真的流程——"把真实目录放进 `~/.dsh/skills`，再用 `-DisableSkills` 挪走"——
+**会产出死索引路径**。索引记录的是 `<skillsRoot>/<name>/SKILL.md`；下一步就把那个
+目录挪走了；路由器于是宣传一批并不存在的技能。（已复现并报告上游。）
 
-This tool never moves anything. It creates **junctions (Windows) / symlinks (POSIX)
-pointing at your source libraries**, and the indexes record the *target* paths, which
-never move. Deleting a link never touches the target. `~/.dsh` can be wiped and
-reinstalled without losing a single skill.
+本工具从不移动任何东西。它创建**指向你源库的 junction（Windows）/ symlink（POSIX）**，
+索引记录的是*目标*路径——目标永不移动。删链接不碰目标。`~/.dsh` 可以整个删掉重装，
+一个技能都不丢。
 
-### 2. One scan root is never enough
+### 2. 一个扫描根永远不够
 
-DSH scans **five** roots (rank 100 project-dsh → 500 user-agents). A tool that only
-manages `~/.dsh/skills` (rank 400) silently ignores rank 100/200/300/500 — and any
-skill still resident there keeps costing tokens. `scan` shows all five, including
-`customSkillDirs` parsed from your profile's `cordis.patch.yml`.
+DSH 扫描**五个**根（rank 100 项目 dsh → 500 用户 agents）。只管理
+`~/.dsh/skills`（rank 400）的工具会静默漏掉 100/200/300/500——任何一个还常驻在
+那些根里的技能都还在烧 token。`scan` 会把五个根全部列出来，包括从你 profile 的
+`cordis.patch.yml` 解析出的 `customSkillDirs`。
 
-### 3. Discovery is one level deep — mirror it exactly
+### 3. 发现规则只有一层——精确镜像它
 
-DSH recognises `<root>/<name>/SKILL.md` and `<root>/<name>.md`; nested `**/SKILL.md`
-is **deliberately not discovered**. This tool mirrors that exactly, so what it counts
-is what DSH counts — no surprises when a nested skill "doesn't show up".
+DSH 认 `<root>/<name>/SKILL.md` 和 `<root>/<name>.md`；嵌套的 `**/SKILL.md`
+**故意不发现**。本工具原样镜像这个规则，所以它数出来的就是 DSH 数出来的——
+不会出现"嵌套技能怎么没出现"的意外。
 
-It also handles the two real-world shapes that make a skill **silently invisible** to
-DSH (the provider skips the whole skill with only a log warning):
+它还处理两种会让技能对 DSH **静默不可见**的现实情况（provider 只留一行日志就
+跳过整个技能）：
 
-- a UTF-8 **BOM** before the opening `---`
-- a `/* ... */` **comment banner** before the frontmatter (14 skills in the author's
-  library were dead this way)
+- 开头 `---` 前有 UTF-8 **BOM**
+- frontmatter 前有 `/* ... */` **注释横幅**（作者库里 14 个技能就是这样死的）
 
-`scan` lists every such skill and tells you the two-line fix.
+`scan` 会列出每个这样的技能，并告诉你两行的修法。
 
-### 4. A classifier is only as good as its budget
+### 4. 分类器的上限是它的预算
 
-The obvious classifier — `subdomain` frontmatter, else name prefix, else `other` —
-put **489 of 1,548 skills** into one bucket on a real library, producing a single
-~25,100-token index file. The router would then cost as much as the catalog it
-replaced.
+最朴素的分类器——`subdomain` 优先，否则名字前缀，否则 `other`——在真实库上把
+**1,548 个技能里的 489 个**塞进同一个桶，产出一个 ~25,100 token 的索引文件。
+路由器的开销会追平它要替代的目录本身。
 
-So classification here is budget-driven, not taxonomy-driven:
+所以这里的分类是**预算驱动**，不是分类学驱动：
 
-- signals, in priority order: `--overrides` map → `metadata.category` → `subdomain`
-  → name prefix → `other`
-- any bucket over `--max-tokens` (default 4000) is **split** — first by the most
-  discriminative token in skill names (max 2 levels), then unconditionally by
-  alphabetical binning, which packs by measured tokens and always converges
-- buckets that are tiny fold into `other` so the router table stays small
-- duplicate bucket names are de-duplicated (`-2`, `-3`…) so two halves of one split
-  can never overwrite each other's index file
+- 信号优先级：`--overrides` 映射 → `metadata.category` → `subdomain` → 名字前缀 → `other`
+- 任何超过 `--max-tokens`（默认 4000）的桶会被**拆分**——先按技能名里最具区分度的
+  token 拆（最多 2 层），拆不动就无条件按字母分箱，按实测 token 装箱、必然收敛
+- 太小的桶折进 `other`，路由器表格保持小
+- 重名的桶自动去重（`-2`、`-3`…），拆分出的两半永远不会互相覆盖索引文件
 
-Measured on the author's library: 60 buckets, **0 over budget**, largest exactly 4000 tokens.
+在作者库上实测：60 个桶，**0 个超预算**，最大正好 4000 token。
 
-### 5. Token math must be honest
+### 5. Token 数学必须诚实
 
-Two mistakes this tool refuses to make:
+本工具拒绝犯的两个错误：
 
-- **counting raw descriptions.** DSH caps each description at
-  `catalogDescriptionMaxLength` (default 500). Uncapped math overstates by ~3%
-  (measured 595,650 vs 578,548 chars). We model the cap.
-- **assuming ~4 chars/token for everything.** That is fine for English and badly
-  wrong for CJK, where one character is often one token. Token estimates here are
-  script-aware.
+- **按原始 description 计数。** DSH 对每条 description 有
+  `catalogDescriptionMaxLength`（默认 500）截断。不建模这个上限会高估约 3%
+  （实测 595,650 vs 578,548 字符）。我们建模了这个上限。
+- **拿 ~4 chars/token 套一切。** 对英文没问题，对 CJK 错得离谱——一个汉字常常
+  就是一个 token。这里的 token 估算区分文字体系（script-aware）。
 
-## Commands
+## 命令
 
-| command | what it does | writes? |
+| 命令 | 干什么 | 写文件？ |
 |---|---|---|
-| `scan` | all five roots, resident catalog cost, silently-skipped skills | no |
-| `plan` | categories, index sizes, link actions | no |
-| `apply` | create links, write router + indexes + manifest | yes (`--dry-run` supported) |
-| `verify` | fail (exit 1) if any index path is dead; flag catalog re-inflation | no |
-| `restore` | remove our links and generated files only | source libraries untouched |
+| `scan` | 五个根全部枚举、常驻目录开销、被静默跳过的技能 | 否 |
+| `plan` | 分类结果、索引大小、链接动作的预览 | 否 |
+| `apply` | 建链接，写路由器 + 索引 + manifest | 是（支持 `--dry-run`） |
+| `verify` | 任何索引路径失效即失败（退出码 1）；目录回涨也会报 | 否 |
+| `restore` | 只移除本工具建的链接和生成文件 | 源库不动 |
 
-Useful flags: `--source` (repeatable) · `--exclude <name|prefix*>` · `--exclude-file <json>`
+常用参数：`--source`（可重复）· `--exclude <name|prefix*>` · `--exclude-file <json>`
 · `--overrides <json>` · `--max-tokens <n>` · `--locale <zh|en>` · `--profile <name>`
 · `--dsh-home <dir>` · `--dry-run` · `--json`
 
-## Rolling it out on another machine
+## 在另一台机器上部署
 
 ```bash
 git clone https://github.com/mikuniemo/dsh-skill-router.git
 cd dsh-skill-router
-node bin/dsh-skill-router.mjs scan              # see what you have
-node bin/dsh-skill-router.mjs plan --source <your-skill-library> --locale zh
-node bin/dsh-skill-router.mjs apply --source <your-skill-library> --locale zh
+node bin/dsh-skill-router.mjs scan              # 看看有什么
+node bin/dsh-skill-router.mjs plan --source <你的技能库> --locale zh
+node bin/dsh-skill-router.mjs apply --source <你的技能库> --locale zh
 node bin/dsh-skill-router.mjs verify
-# restart DSH to be safe (the watcher usually picks it up live)
+# 保险起见重启 DSH（一般 watcher 会热加载）
 ```
 
-Rollback: `restore` (or just delete `skills/skill-router`, `skill-index/`, `skills-off/`).
+回滚：`restore`（或者干脆删掉 `skills/skill-router`、`skill-index/`、`skills-off/`）。
 
-## Compatibility & limitations
+## 兼容性与限制
 
-- DSH `0.2.x` on Windows/Linux/macOS (frontmatter rules verified against the
-  `@deepseek-ai/dsh-skill-filesystem` docs shipped in the app bundle).
-- **Depends on the model actually reading the router.** Weak models may ignore the
-  instructions; the router text states the rule explicitly, but that is the trade.
-- One extra `read` hop versus the native `skill` tool. That is the price of ~70K tokens.
-- Plugin-provided skills (e.g. `dsh-plugin-ctf` with `includeDefaultRoots: false`) are
-  isolated by design and are not covered.
-- Indexes do not auto-update when your source libraries change; re-run `apply`
-  (it is idempotent and incremental).
+- DSH `0.2.x`，Windows/Linux/macOS（frontmatter 规则对照应用内置的
+  `@deepseek-ai/dsh-skill-filesystem` 文档逐条验证）。
+- **依赖模型真的去读路由器。** 弱模型可能无视指令；路由器文本已经把规则写得很
+  显式，但这就是取舍。
+- 比原生 `skill` 工具多一次 `read` 跳数。这是 ~70K token 换来的代价。
+- 插件自带的技能（如 `dsh-plugin-ctf` 配 `includeDefaultRoots: false`）按设计
+  就是隔离的，不在覆盖范围。
+- 源库变化后索引不会自动更新；重跑 `apply`（幂等、增量）。
 
-## Methodology
+## 方法论
 
-See [docs/METHODOLOGY.md](docs/METHODOLOGY.md) for the full write-up: the failure
-modes, the measurements, and the reasoning behind every design decision — written so
-you can re-derive the tool (or port it to another harness) from first principles.
+完整推导见 [docs/METHODOLOGY.md](docs/METHODOLOGY.md)：失败模式、测量数据、
+每个设计决策背后的推理——目标是让你能从第一性原理重新推导出这个工具
+（或移植到别的 harness）。
 
-## Tests
+## 测试
 
 ```bash
-npm test        # 24 end-to-end assertions on a throwaway sandbox
+npm test        # 24 条端到端断言，跑在一次性沙箱里
 ```
 
-## License
+## 许可证
 
 MIT
