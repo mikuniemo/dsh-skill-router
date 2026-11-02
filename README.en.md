@@ -185,10 +185,41 @@ Two mistakes this tool refuses to make:
 | `apply` | create links, write router + indexes + manifest | yes (`--dry-run` supported) |
 | `verify` | fail (exit 1) if any index path is dead; flag catalog re-inflation | no |
 | `restore` | remove our links and generated files only | source libraries untouched |
+| `route` | **query-time routing**: given one task sentence, which index (and hub) to read first | no |
 
 Useful flags: `--source` (repeatable) · `--exclude <name|prefix*>` · `--exclude-file <json>`
 · `--overrides <json>` · `--max-tokens <n>` · `--locale <zh|en>` · `--profile <name>`
 · `--dsh-home <dir>` · `--dry-run` · `--json`
+· `route` only: `--routing <file>` · `--hub-root <dir>` · `--validate`
+
+## `route`: make "which index?" answerable
+
+`scan`/`plan`/`apply` build the indexes. The other half of the loop is the question you hit while
+working: *this one sentence — which index do I read first?* Handing the model 1,500 skill names loses
+to handing it a definite answer.
+
+```bash
+# the routing file is yours (schema: docs/ROUTING.md); no built-in rules ship with the tool
+dsh-skill-router route "分析这个 APK 的签名校验" \
+  --routing ~/.dsh/capabilities/routing.json --source ~/skills
+
+#   PRIMARY  : R1  APK / Android reverse
+#     read   : ~/.dsh/skill-index/reverse-engineering.md
+#     hub    : reverse-hub -> ~/skills/reverse-hub/SKILL.md  [flat layout]
+
+dsh-skill-router route --validate --routing <file>    # validate the rule file only
+dsh-skill-router route "..." --routing <file> --json  # for agents
+```
+
+Three semantics worth remembering:
+
+- **`must` / `mustAll` are AND within a clause; separate `keywords` entries are OR**; a matching
+  `exclude` vetoes that clause.
+- **No match returns `fallback: true`** — no guessing, not even the closest one. A wrong route is
+  more expensive than no route.
+- **Hub paths are probed in three layouts** (flat `<lib>/<hub>/` → legacy `<lib>/_hubs/<hub>/` →
+  literal relative path). This is what breaks after a library re-org, so `route` reports which
+  layout hit, or why nothing did.
 
 ## Rolling it out on another machine
 

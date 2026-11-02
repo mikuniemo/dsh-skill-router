@@ -8,6 +8,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { resolveHubPath, validateRouting } from '../src/route.mjs';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const CLI = path.join(ROOT, 'bin', 'dsh-skill-router.mjs');
@@ -139,6 +140,55 @@ const restored = JSON.parse(run('restore', ['--json']));
 ok(restored.linksRemoved === 11, `restore removed 11 links (got ${restored.linksRemoved})`);
 ok(fs.readdirSync(path.join(home, 'skills-off')).length === 0, 'off-root empty after restore');
 ok(fs.existsSync(path.join(libA, 'ctf-crypto', 'SKILL.md')), 'sources still intact after restore');
+
+// ── route ───────────────────────────────────────────────────────────────
+console.log('\n[route]');
+const routingFile = path.join(tmp, 'routing.json');
+const fixture = {
+  schemaVersion: 1,
+  routes: {
+    R1: { label: 'k8s cluster', categories: ['cloud-native'], hubs: ['cloud-hub'], keywords: [{ must: '\\bkubernetes\\b|\\bk8s\\b' }] },
+    R2: { label: 'k8s (loose)', categories: ['cloud-native'], keywords: [{ must: 'k8s' }] },
+    R3: { label: 'index tuning', categories: ['data'], keywords: [{ must: '\\bsql\\b', mustAll: ['index|索引'] }] },
+    R4: { label: 'vetoed', categories: ['never'], keywords: [{ must: 'k8s', exclude: 'cluster.?admin' }] },
+  },
+  priority: ['R3', 'R1', 'R2', 'R4'],
+  hubs: { 'cloud-hub': { path: '_hubs/cloud-hub/SKILL.md', purpose: 'test hub' } },
+};
+fs.writeFileSync(routingFile, JSON.stringify(fixture));
+const routeOf = (q) => JSON.parse(execFileSync(process.execPath,
+  [CLI, 'route', q, '--routing', routingFile, '--json'], { encoding: 'utf8' }));
+
+ok(routeOf('deploy a k8s cluster').primary.id === 'R1', 'route: must matches');
+ok(routeOf('k8s 集群怎么排查').primary.id === 'R1', 'route: priority decides between two matching rules');
+ok(routeOf('k8s cluster admin 提权').primary.id === 'R1', 'route: exclude vetoes R4 only, R1 survives');
+ok(routeOf('sql 慢查询加索引').primary.id === 'R3', 'route: mustAll required (sql + 索引)');
+ok(routeOf('sql 注入 payload').fallback === true, 'route: mustAll unmet → fallback, not a guess');
+ok(routeOf('sql 注入 payload').matches.length === 0, 'route: fallback reports zero matches');
+
+// 三种 hub 布局都要能解析（库被重构过之后最容易断在这里）
+const flatLib = path.join(tmp, 'lib-flat', 'cloud-hub');
+const metaLib = path.join(tmp, 'lib-meta', '_hubs', 'cloud-hub');
+fs.mkdirSync(flatLib, { recursive: true });
+fs.mkdirSync(metaLib, { recursive: true });
+fs.writeFileSync(path.join(flatLib, 'SKILL.md'), '---\nname: cloud-hub\ndescription: x\n---\n');
+fs.writeFileSync(path.join(metaLib, 'SKILL.md'), '---\nname: cloud-hub\ndescription: x\n---\n');
+const flatHit = resolveHubPath('_hubs/cloud-hub/SKILL.md', [path.join(tmp, 'lib-flat')]);
+const metaHit = resolveHubPath('_hubs/cloud-hub/SKILL.md', [path.join(tmp, 'lib-meta')]);
+ok(flatHit?.layout === 'flat', `hub resolves in flattened layout (got ${flatHit?.layout})`);
+ok(metaHit?.layout === 'meta', `hub resolves in legacy _hubs layout (got ${metaHit?.layout})`);
+ok(resolveHubPath('_hubs/nope/SKILL.md', [path.join(tmp, 'lib-flat')]) === null, 'hub miss returns null, no throw');
+
+const badFile = path.join(tmp, 'routing-bad.json');
+fs.writeFileSync(badFile, JSON.stringify({ routes: { R9: { keywords: [{ must: '([' }] } } }));
+let badExit = 0;
+try { execFileSync(process.execPath, [CLI, 'route', '--validate', '--routing', badFile], { stdio: 'pipe' }); }
+catch (e) { badExit = e.status; }
+ok(badExit === 1, 'route --validate exits 1 on an invalid regex');
+
+const validReport = validateRouting(fixture);
+ok(validReport.errors.length === 0, 'validateRouting: fixture has no errors');
+ok(validReport.ruleCount === 4 && validReport.hubCount === 1, 'validateRouting: counts rules and hubs');
 
 // ── cleanup ─────────────────────────────────────────────────────────────
 fs.rmSync(tmp, { recursive: true, force: true });

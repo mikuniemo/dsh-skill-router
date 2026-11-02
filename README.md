@@ -176,10 +176,40 @@ DSH 认 `<root>/<name>/SKILL.md` 和 `<root>/<name>.md`；嵌套的 `**/SKILL.md
 | `apply` | 建链接，写路由器 + 索引 + manifest | 是（支持 `--dry-run`） |
 | `verify` | 任何索引路径失效即失败（退出码 1）；目录回涨也会报 | 否 |
 | `restore` | 只移除本工具建的链接和生成文件 | 源库不动 |
+| `route` | **查询期路由**：给一句任务，输出该先读哪份索引、哪个编排中心 | 否 |
 
 常用参数：`--source`（可重复）· `--exclude <name|prefix*>` · `--exclude-file <json>`
 · `--overrides <json>` · `--max-tokens <n>` · `--locale <zh|en>` · `--profile <name>`
 · `--dsh-home <dir>` · `--dry-run` · `--json`
+· `route` 专用：`--routing <file>` · `--hub-root <dir>` · `--validate`
+
+## `route`：让"该读哪份索引"也可查询
+
+`scan`/`plan`/`apply` 解决的是**建索引**；真正干活时还有另一半问题：
+手上这一句话，该先 `read` 哪一份索引？把 1,500 个技能名背给模型不如给它一个确定答案。
+
+```bash
+# 规则文件是你自己的（schema 见 docs/ROUTING.md），工具不带任何内置规则
+dsh-skill-router route "帮我分析这个 APK 的签名校验" \
+  --routing ~/.dsh/capabilities/routing.json --source ~/skills
+
+#   query    : 帮我分析这个 APK 的签名校验
+#   PRIMARY  : R1  APK / Android reverse
+#     read   : ~/.dsh/skill-index/reverse-engineering.md
+#     read   : ~/.dsh/skill-index/mobile-security.md
+#     hub    : reverse-hub -> ~/skills/reverse-hub/SKILL.md  [flat layout]
+#   (considered 57 rules; 1 matched)
+
+dsh-skill-router route --validate --routing ~/.dsh/capabilities/routing.json   # 只验规则文件
+dsh-skill-router route "..." --routing <f> --json                              # 给 agent 消费
+```
+
+三条语义值得记住：
+
+- **`must` / `mustAll` 是 AND，多条 `keywords` 之间是 OR**；`exclude` 命中即否决该条。
+- **一个都不命中就返回 `fallback: true`**，不猜、"最像的那条"也不给——路由猜错的代价比不路由高。
+- **hub 路径三处布局依次尝试**（拍平 `<lib>/<hub>/` → 旧 `<lib>/_hubs/<hub>/` → 原样相对路径），
+  库被重新整合过之后这条最容易断，`route` 会明确告诉你哪一层命中了、或者为什么没命中。
 
 ## 在另一台机器上部署
 

@@ -1,6 +1,6 @@
 {
   "name": "dsh-skill-router",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "把 DeepSeek Harness 的技能目录从 O(全部技能) 降到 ~600 token：一个常驻路由器 + 按需分类索引。跨平台、零依赖。",
   "type": "module",
   "license": "MIT",
@@ -16,7 +16,7 @@
     "src",
     "docs",
     "README.md",
-    "README.zh.md",
+    "README.en.md",
     "LICENSE"
   ],
   "engines": {
@@ -25,6 +25,7 @@
   "scripts": {
     "test": "node test/smoke.mjs",
     "scan": "node bin/dsh-skill-router.mjs scan",
+    "route": "node bin/dsh-skill-router.mjs route",
     "plan": "node bin/dsh-skill-router.mjs plan"
   },
   "keywords": [
@@ -35,6 +36,7 @@
     "skill-router",
     "context-optimization",
     "token-budget",
+    "query-routing",
     "claude-code",
     "codex"
   ],
